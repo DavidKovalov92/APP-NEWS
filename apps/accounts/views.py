@@ -39,8 +39,8 @@ class LoginView(generics.CreateAPIView):
 	
 	def post(self, request, *args, **kwargs):
 		serializer = self.get_serializer(data=request.data)
-		serializer.is_valid(raise_exceptions=True)
-		user = serializer.save()
+		serializer.is_valid(raise_exception=True)
+		user = serializer.validated_data['user']
 
 		login(request, user)
 		refresh = RefreshToken.for_user(user)
@@ -50,6 +50,7 @@ class LoginView(generics.CreateAPIView):
 			'access': str(refresh.access_token),
 			'message': 'User login successfully'
 		}, status=status.HTTP_200_OK)
+
 	
 
 class ProfileView(generics.CreateAPIView):
@@ -65,7 +66,7 @@ class ProfileView(generics.CreateAPIView):
 		return UserProfileSerializer
 	
 
-class ProfileView(generics.CreateAPIView):
+class ChangePasswordView(generics.CreateAPIView):
 	serializer_class = ChangePasswordSerializer
 	permission_classes = [permissions.IsAuthenticated]
 

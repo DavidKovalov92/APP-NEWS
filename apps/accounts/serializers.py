@@ -32,12 +32,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 	
 
 
-class UserLoginSerializer(serializers.ModelSerializer):
+class UserLoginSerializer(serializers.Serializer):
 	email = serializers.EmailField()
 	password = serializers.CharField(write_only=True)
 
 
-	def valifate(self, attrs):
+	def validate(self, attrs):
 		email = attrs.get('email')
 		password = attrs.get('password')
 
@@ -56,7 +56,7 @@ class UserLoginSerializer(serializers.ModelSerializer):
 					'User account is disabled'
 				)
 			attrs['user'] = user
-			return user
+			return attrs
 		else:
 			raise serializers.ValidationError(
 				'Must include "password" and "email"'
@@ -79,10 +79,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 	
 	def get_posts_count(self, obj):
-		return obj.posts.count()
+		try: 
+			return obj.posts.count()
+		except AttributeError:
+			return 0
+		 
 	
 	def get_comments_count(self, obj):
-		return obj.comments.count()
+		try: 
+			return obj.comments.count()
+		except AttributeError:
+			return 0
+		
 	
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -101,7 +109,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 		return instance
 	
 
-class ChangePasswordSerializer(serializers.ModelSerializer):
+class ChangePasswordSerializer(serializers.Serializer):
 	old_password = serializers.CharField(required=True)
 	new_password = serializers.CharField(
 			required=True,
