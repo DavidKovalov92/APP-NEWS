@@ -101,7 +101,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 		return instance
 	
 
-class UserPasswordSerializer(serializers.ModelSerializer):
+class ChangePasswordSerializer(serializers.ModelSerializer):
 	old_password = serializers.CharField(required=True)
 	new_password = serializers.CharField(
 			required=True,
