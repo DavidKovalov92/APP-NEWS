@@ -2,7 +2,6 @@ from rest_framework import generics, permissions, status, filters
 from rest_framework.decorators import api_view, permission_classes
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
-from sympy import content
 from .models import Category, Post
 from django.db.models import Q
 from .serializers import (
@@ -42,19 +41,24 @@ class PostListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
 
     def get_queryset(self):
+        """Возвращает посты с учетом прав доступа"""
+
         queryset = Post.objects.select_related('author', 'category')
 
+        # фильрация по правам доступа
         if not self.request.user.is_authenticated:
             queryset = queryset.filter(status='published')
         else:
             queryset = queryset.filter(
                 Q(status='published') | Q(author=self.request.user)
             )
-
-    def get_serializer(self):
+        return queryset
+    
+    def get_serializer_class(self):
         if self.request.method == 'POST':
             return PostCreateUpdateSerializer
         return PostListSerializer
+
     
 
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):

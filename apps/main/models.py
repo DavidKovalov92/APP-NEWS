@@ -47,8 +47,7 @@ class Post(models.Model):
     )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        blank=True, 
+        on_delete=models.CASCADE,
         related_name='posts'
     )
     status = models.CharField(

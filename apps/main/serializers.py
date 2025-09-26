@@ -29,7 +29,7 @@ class PostListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'slug', 'content', 'image', 'category',
             'author', 'status', 'created_at', 'updated_at',
-            'views_count', 'comments_count', 'is_pinned', 'pinned_info'
+            'views_count', 'comments_count'
         ]
         read_only_fields = ['slug', 'author', 'views_count']
 
@@ -53,12 +53,11 @@ class PostDetailSerializer(serializers.ModelSerializer):
             'id', 'title', 'slug', 'content', 'image', 'category',
             'category_info', 'author', 'author_info', 'status',
             'created_at', 'updated_at', 'views_count', 'comments_count',
-            'is_pinned', 'pinned_info', 'can_pin'
         ]
         read_only_fields = ['slug', 'author', 'views_count']
 
     def get_author_info(self, obj):
-        author = obj.auhtor
+        author = obj.author
 
         return {
             'id': author.id,
@@ -85,7 +84,7 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
         fields = ['title', 'content', 'image', 'category', 'status']
 
     def create(self, validated_data):
-        validated_data['auhtor'] = self.context['request'].user
+        validated_data['author'] = self.context['request'].user
         validated_data['slug'] = slugify(validated_data['title'])
         return super().create(validated_data)
 
