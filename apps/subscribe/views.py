@@ -28,31 +28,34 @@ class SubscriptionPlanListView(generics.ListAPIView):
     serializer_class = SubscriptionPlanSerializer
     permission_classes = [permissions.AllowAny]
 
-class SubscriptionPlanListView(generics.RetrieveAPIView):
+class SubscriptionPlanDetailView(generics.RetrieveAPIView):
     """Список доступных тарифных планов"""
     queryset = SubscriptionPlan.objects.filter(is_active=True)
     serializer_class = SubscriptionPlanSerializer
     permission_classes = [permissions.AllowAny] 
 
 
-class UserSubsriptionView(generics.RetrieveAPIView):
-    serializer_class = SubscriptionPlanSerializer
-    permission_classes = [permissions.IsAuthenticated] 
+class UserSubscriptionView(generics.RetrieveAPIView):
+    """Информация о подписке текущего пользователя"""
+    serializer_class = SubscriptionSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
+        """Возвращает подписку пользователя или None"""
         try:
             return self.request.user.subscription
         except Subscription.DoesNotExist:
             return None
-
+        
     def retrieve(self, request, *args, **kwargs):
+        """Возвращает информацию о подписке"""
         subscription = self.get_object()
         if subscription:
             serializer = self.get_serializer(subscription)
             return Response(serializer.data)
         else:
             return Response({
-                'detail': 'No subscruption found'
+                'detail': 'No subscription found'
             }, status=status.HTTP_404_NOT_FOUND)
         
 

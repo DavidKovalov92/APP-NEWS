@@ -4,6 +4,7 @@ from .models import Category, Post
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для категорий"""
     posts_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -20,32 +21,41 @@ class CategorySerializer(serializers.ModelSerializer):
     
 
 class PostListSerializer(serializers.ModelSerializer):
+    """Сериализатор для списка постов"""
     author = serializers.StringRelatedField()
     category = serializers.StringRelatedField()
     comments_count = serializers.ReadOnlyField()
+    is_pinned = serializers.ReadOnlyField()
+    pinned_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = [
             'id', 'title', 'slug', 'content', 'image', 'category',
             'author', 'status', 'created_at', 'updated_at',
-            'views_count', 'comments_count'
+            'views_count', 'comments_count', 'is_pinned', 'pinned_info'
         ]
         read_only_fields = ['slug', 'author', 'views_count']
 
+    def get_pinned_info(self, obj):
+        """Возвращает информацию о закреплении"""
+        return obj.get_pinned_info()
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-
+        # Обрезаем контент для списка
         if len(data['content']) > 200:
             data['content'] = data['content'][:200] + '...'
         return data
     
-
 class PostDetailSerializer(serializers.ModelSerializer):
+    """Сериализатор для детального просмотра поста"""
     author_info = serializers.SerializerMethodField()
     category_info = serializers.SerializerMethodField()
     comments_count = serializers.ReadOnlyField()
+    is_pinned = serializers.ReadOnlyField()
+    pinned_info = serializers.SerializerMethodField()
+    can_pin = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -53,12 +63,12 @@ class PostDetailSerializer(serializers.ModelSerializer):
             'id', 'title', 'slug', 'content', 'image', 'category',
             'category_info', 'author', 'author_info', 'status',
             'created_at', 'updated_at', 'views_count', 'comments_count',
+            'is_pinned', 'pinned_info', 'can_pin'
         ]
         read_only_fields = ['slug', 'author', 'views_count']
 
     def get_author_info(self, obj):
         author = obj.author
-
         return {
             'id': author.id,
             'username': author.username,
@@ -75,10 +85,20 @@ class PostDetailSerializer(serializers.ModelSerializer):
             }
         return None
     
-             
+    def get_pinned_info(self, obj):
+        return obj.get_pinned_info()
+    
+    def get_can_pin(self, obj):
+        """Проверяет, может ли текущий пользователь закрпить пост"""
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.can_be_pinned_by(request.user)
+
+
 class PostCreateUpdateSerializer(serializers.ModelSerializer):
-
-
+    """Сериализатор для создания и обновления постов"""
+    
     class Meta:
         model = Post
         fields = ['title', 'content', 'image', 'category', 'status']
@@ -92,3 +112,4 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
         if 'title' in validated_data:
             validated_data['slug'] = slugify(validated_data['title'])
         return super().update(instance, validated_data)
+    
