@@ -31,7 +31,7 @@ class CommentListCreateView(generics.ListCreateAPIView):
             'author', 'post', 'parent'
         )
     
-    def get_serializer(self):
+    def get_serializer_class(self):
         if self.request.method == 'POST':
             return CommentCreateSerializer
         return CommentSerializer
@@ -52,7 +52,7 @@ class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance.save()
 
 
-class MyCommentView(generics.ListAPIView):
+class MyCommentsView(generics.ListAPIView):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
