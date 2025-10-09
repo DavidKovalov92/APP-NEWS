@@ -1,12 +1,9 @@
-from ssl import get_server_certificate
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.utils import timezone
-
-from apps.main import serializers
 
 from .models import SubscriptionPlan, Subscription, PinnedPost, SubscriptionHistory
 from .serializers import (
@@ -28,11 +25,12 @@ class SubscriptionPlanListView(generics.ListAPIView):
     serializer_class = SubscriptionPlanSerializer
     permission_classes = [permissions.AllowAny]
 
+
 class SubscriptionPlanDetailView(generics.RetrieveAPIView):
-    """Список доступных тарифных планов"""
+    """Детальная информация о тарифном плане"""
     queryset = SubscriptionPlan.objects.filter(is_active=True)
     serializer_class = SubscriptionPlanSerializer
-    permission_classes = [permissions.AllowAny] 
+    permission_classes = [permissions.AllowAny]
 
 
 class UserSubscriptionView(generics.RetrieveAPIView):
@@ -58,6 +56,7 @@ class UserSubscriptionView(generics.RetrieveAPIView):
                 'detail': 'No subscription found'
             }, status=status.HTTP_404_NOT_FOUND)
         
+    
 
 class SubscriptionHistoryView(generics.ListAPIView):
     """История изменений подписки пользователя"""
@@ -72,19 +71,21 @@ class SubscriptionHistoryView(generics.ListAPIView):
         except Subscription.DoesNotExist:
             return SubscriptionHistory.objects.none()
         
-    
+
 class PinnedPostView(generics.RetrieveUpdateDestroyAPIView):
     """Управление закрепленным постом пользователя"""
     serializer_class = PinnedPostSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
+        """Возвращает закрепленный пост пользователя"""
         try:
             return self.request.user.pinned_post
         except PinnedPost.DoesNotExist:
             return None
         
     def retrieve(self, request, *args, **kwargs):
+        """Возвращает информацию о закрепленном посте"""
         pinned_post = self.get_object()
         if pinned_post:
             serializer = self.get_serializer(pinned_post)
@@ -95,15 +96,18 @@ class PinnedPostView(generics.RetrieveUpdateDestroyAPIView):
             }, status=status.HTTP_404_NOT_FOUND)
         
     def update(self, request, *args, **kwargs):
+        """Обновляет закрепленный пост"""
+        # Проверяем подписку
         if not hasattr(request.user, 'subscription') or not request.user.subscription.is_active:
             return Response({
                 'error': 'Active subscription required to pin posts'
             }, status=status.HTTP_403_FORBIDDEN)
+
         return super().update(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
+        """Удаляет закрепленный пост"""
         pinned_post = self.get_object()
-
         if pinned_post:
             pinned_post.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -134,16 +138,19 @@ def pin_post(request):
             with transaction.atomic():
                 post = get_object_or_404(Post, id=post_id, status='published')
 
+                # проверяем права
                 if post.author != request.user:
                     return Response({
-                        'error': 'You can only pin your own post'
+                        'error': 'You can only pin your own posts'
                     }, status=status.HTTP_403_FORBIDDEN)
                 
+                # проверяем подписку
                 if not hasattr(request.user, 'subscription') or not request.user.subscription.is_active:
                     return Response({
                         'error': 'Active subscription required to pin posts'
                     }, status=status.HTTP_403_FORBIDDEN)
                 
+                # удаляем существующий закрепленный пост, если есть
                 if hasattr(request.user, 'pinned_post'):
                     request.user.pinned_post.delete()
 
@@ -156,10 +163,10 @@ def pin_post(request):
                 return Response(response_serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({
-                'error': str(e)
+                'error': str(e),
             }, status=status.HTTP_400_BAD_REQUEST)
+        
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
@@ -182,7 +189,6 @@ def unpin_post(request):
             }, status=status.HTTP_404_NOT_FOUND)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
@@ -220,7 +226,6 @@ def cancel_subscription(request):
             'error': 'No subscription found'
         }, status=status.HTTP_404_NOT_FOUND)
     
-
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def pinned_posts_list(request):
@@ -261,7 +266,6 @@ def pinned_posts_list(request):
         'count': int(posts_data),
         'results': posts_data,
     })
-
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])

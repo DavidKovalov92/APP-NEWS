@@ -112,4 +112,3 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
         if 'title' in validated_data:
             validated_data['slug'] = slugify(validated_data['title'])
         return super().update(instance, validated_data)
-    

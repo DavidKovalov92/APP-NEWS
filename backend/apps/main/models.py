@@ -173,4 +173,6 @@ class Post(models.Model):
                     'has_active_subscription': self.pin_info.user.subscription.is_active
                 }
             }
-        return {'is_pinned': False} 
+        return {'is_pinned': False}
+
+    

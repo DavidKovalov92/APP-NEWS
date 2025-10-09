@@ -1,4 +1,3 @@
-from math import e
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -24,6 +23,7 @@ class SubscriptionPlan(models.Model):
 
     def __str__(self):
         return f"{self.name} - ${self.price}"
+    
 
 class Subscription(models.Model):
     """Модель подписки пользователя"""
@@ -64,44 +64,48 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.plan.name} ({self.status})"
-
-
+    
     @property
     def is_active(self):
-        return {
-            self.status == 'active' and 
+        """Проверяет, активная ли подписка"""
+        return (
+            self.status == 'active' and
             self.end_date > timezone.now()
-        }
+        )
     
     @property
     def days_remaining(self):
+        """Возвращает количество дней до окончания подписки"""
         if not self.is_active:
             return 0
         
         delta = self.end_date - timezone.now()
-
         return max(0, delta.days)
     
-    def extend_subsription(self, days=30):
+    def extend_subscription(self, days=30):
+        """Продлевает подписку на указанное количество дней"""
         if self.is_active:
             self.end_date += timedelta(days=days)
         else:
             self.start_date = timezone.now()
-            self.end_date += self.start_date + timedelta(days=days)
+            self.end_date = self.start_date + timedelta(days)
             self.status = 'active'
         self.save()
 
     def cancel(self):
+        """Отменяет подписку"""
         self.status = 'cancelled'
         self.auto_renew = False
         self.save()
 
     def expire(self):
+        """Помечает подписку как истекшую"""
         self.status = 'expired'
         self.save()
 
-    def actiate(self):
-        self.status = 'activated'
+    def activate(self):
+        """Активирует подписку"""
+        self.status = 'active'
         self.start_date = timezone.now()
         self.end_date = self.start_date + timedelta(days=self.plan.duration_days)
         self.save()
@@ -134,15 +138,19 @@ class PinnedPost(models.Model):
         return f"{self.user.username} pinned: {self.post.title}"
     
     def save(self, *args, **kwargs):
+        """Переопределяет сохранение для проверки подписки"""
+
+        # проверка на наличие активной подписки
         if not hasattr(self.user, 'subscription') or not self.user.subscription.is_active:
-            raise ValueError("User must have subscription plan")
-
+            raise ValueError('User must have an active subscription to pin posts.')
+        
+        # проверка принадлежности поста к пользователю
         if self.post.author != self.user:
-            raise ValueError('User can only pin their own posts')
+            raise ValueError('User can only pin their own posts.')
+        
+        super().save(*args, **kwargs)
 
-        return super().save(*args, **kwargs)
-    
-    
+
 class SubscriptionHistory(models.Model):
     """История изменений подписки"""
     ACTION_CHOICES = [
