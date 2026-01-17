@@ -8,18 +8,18 @@
 ---
 
 ## 📝 Overview
-**APP-NEWS** — це сучасна платформа для агрегації новин, розроблена на базі **Django**. Проєкт поєднує в собі функціонал класичного блогу з просунутими механіками монетизації через підписки та інструментами для просування контенту користувачів.
+**APP-NEWS** is a modern news aggregation platform built with **Django**. The project combines classic blog functionality with advanced monetization mechanics through subscriptions and tools for user content promotion.
 
-Основна мета проєкту — забезпечити безпечне та швидке середовище для споживання контенту з можливістю персоналізації стрічки новин.
+The primary goal of the project is to provide a secure and fast environment for content consumption with personalized news feed capabilities.
 
 ---
 
 ## ✨ Key Features
 
-* 💳 **Monetization:** Повна інтеграція **Stripe API** для управління циклами підписки. Користувачі можуть купувати преміум-доступ до ексклюзивних новин з автоматизованою обробкою платежів.
-* 🔒 **Security:** Впроваджено надійну аутентифікацію за допомогою **JWT (JSON Web Tokens)**. Це забезпечує безпечну роботу в режимі stateless між бекендом та фронтендом.
-* 🚀 **User Interaction:** Реалізовано функціонал **"Pin Posts"**, що дозволяє користувачам закріплювати свої записи у топі стрічки після придбання відповідних послуг.
-* 📂 **Content Management:** Гнучка система категорій та фільтрації новин, що дозволяє легко знаходити потрібний контент.
+* 💳 **Monetization:** Full **Stripe API** integration for managing subscription cycles. Users can purchase premium access to exclusive news with automated payment processing.
+* 🔒 **Security:** Reliable authentication implemented using **JWT (JSON Web Tokens)**. This ensures secure, stateless operation between the backend and frontend.
+* 🚀 **User Interaction:** Features **"Pin Posts"** functionality, allowing users to pin their entries to the top of the feed after purchasing the corresponding services.
+* 📂 **Content Management:** A flexible system of categories and news filtering for easy content discovery.
 
 ---
 
@@ -43,7 +43,7 @@
 * Stripe Account (API Keys)
 
 ### Installation
-1. **Клонуйте репозиторій:**
+1. **Clone the repository:**
    ```bash
    git clone [https://github.com/DavidKovalov92/APP-NEWS.git](https://github.com/DavidKovalov92/APP-NEWS.git)
    cd APP-NEWS
